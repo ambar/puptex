@@ -1,11 +1,57 @@
 {
   "name": "puptex",
   "version": "0.0.1",
-  "description": "",
+  "description": "Using Puppeteer to render math.",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "license": "MIT",
+  "engines": {
+    "node": ">=6.4.0"
   },
-  "author": "",
-  "license": "MIT"
+  "scripts": {
+    "start": "node ./server --run",
+    "build:node6": "BABEL_ENV=node6 babel src --out-dir node6 && cp ./src/puptex.html ./node6",
+    "bench": "node ./scripts/bench > doc/bench.txt",
+    "prepublish": "npm test && npm run build:node6",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test": "jest"
+  },
+  "files": [
+    "src",
+    "node6",
+    "server.js",
+    "index.js"
+  ],
+  "keywords": [
+    "Puppeteer",
+    "MathJax",
+    "MathJax-node",
+    "MathML",
+    "SVG",
+    "LaTeX",
+    "TeX",
+    "math",
+    "headless",
+    "rendering"
+  ],
+  "jest": {
+    "coverageReporters": [
+      "html",
+      "cobertura"
+    ]
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.0",
+    "jest": "^20.0.4",
+    "mathjax-node": "^1.2.0",
+    "supertest": "^3.0.0"
+  },
+  "dependencies": {
+    "koa": "^2.3.0",
+    "koa-compress": "^2.0.0",
+    "lodash": "^4.17.4",
+    "mathjax": "^2.7.2",
+    "puppeteer": "^0.10.1"
+  }
 }

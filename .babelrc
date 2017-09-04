@@ -1,0 +1,9 @@
+{
+  "env": {
+    "node6": {
+      "presets": [
+        ["env", {"targets": {"node": "6.4"}}]
+      ]
+    }
+  }
+}

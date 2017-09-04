@@ -1,0 +1,42 @@
+This is ApacheBench, Version 2.3 <$Revision: 1757674 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient).....done
+
+
+Server Software:        
+Server Hostname:        localhost
+Server Port:            11010
+
+Document Path:          /json?q=f(x)=\sum^{\infty}_{n=0}\frac{f^{(n)}(a)}{n!}(x-a)^n
+Document Length:        9116 bytes
+
+Concurrency Level:      8
+Time taken for tests:   0.491 seconds
+Complete requests:      100
+Failed requests:        0
+Total transferred:      928300 bytes
+HTML transferred:       911600 bytes
+Requests per second:    203.83 [#/sec] (mean)
+Time per request:       39.248 [ms] (mean)
+Time per request:       4.906 [ms] (mean, across all concurrent requests)
+Transfer rate:          1847.80 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.0      0       0
+Processing:    10   38  30.3     27     153
+Waiting:       10   38  30.3     27     153
+Total:         10   38  30.3     28     153
+
+Percentage of the requests served within a certain time (ms)
+  50%     28
+  66%     47
+  75%     57
+  80%     59
+  90%     81
+  95%    108
+  98%    139
+  99%    153
+ 100%    153 (longest request)

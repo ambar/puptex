@@ -1,0 +1,9 @@
+Benchmarking puptex:
+short 1.8209221625ms
+long 3.865462435ms
+unicode 4.43593794ms
+
+Benchmarking mathjax-node:
+short 3.2388764525ms
+long 9.402162539999999ms
+unicode 9.6855925125ms
