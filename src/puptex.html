@@ -75,19 +75,6 @@ const getFrame = (jax) => (
   document.querySelector(`#${jax.inputID}-Frame`)
 )
 
-const cleanupFrame = (jax) => {
-  const frame = getFrame(jax)
-  const parent = frame.parentElement
-  let elementToRemove = frame
-  if (parent.classList.contains('MathJax_SVG_Display')) {
-    elementToRemove = parent
-  }
-  if (elementToRemove.previousElementSibling) {
-    elementToRemove.previousElementSibling.remove()
-  }
-  elementToRemove.remove()
-}
-
 const parseDOMResults = (jax, options) => {
   const frame = getFrame(jax)
   const svg = frame.querySelector('svg')
@@ -119,15 +106,6 @@ const parseData = (jax, errors, options) => {
   return Object.assign(data, parseDOMResults(jax, options))
 }
 
-const runTypeset = (element, callback, errors, options) => {
-  return MathJax.Hub.Typeset(element, () => {
-    const jax = MathJax.Hub.getAllJax(element)[0]
-    const data = parseData(jax, errors, options)
-    cleanupFrame(jax)
-    callback(data)
-  })
-}
-
 window.config = (config = {}) => {
   Object.assign(globalConfig, config)
   if (globalConfig.mathJax) {
@@ -157,34 +135,47 @@ const defaultMathOptions = {
   fontSize: '15px',
 }
 
+const createMathElement = (math, format) => {
+  format = formats.find(f => f.toLowerCase() === format.toLowerCase()) || 'Tex'
+  const element = document.createElement('script')
+  element.type = 'math/' + scriptSubTypes[format]
+  element.textContent = math
+  document.body.appendChild(element)
+  return element
+}
+
 window.renderMath = (math, options) => {
   options = Object.assign({}, defaultMathOptions, options)
   return new Promise((resolve) => {
-    let element
-    let errors = []
-    let unRegister
     MathJax.Hub.Queue(
       () => {
-        element = document.createElement('script')
-        const format = formats.find(f => f.toLowerCase() === options.format.toLowerCase()) || 'Tex'
-        element.type = 'math/' + scriptSubTypes[format]
-        element.textContent = math
-        document.body.appendChild(element)
-        unRegister = registerHooks(errors)
-        return runTypeset(element, resolve, errors, options)
-      },
-      () => {
-        // clears global glyphs cache
-        // https://github.com/mathjax/MathJax/blob/59c26d17b8c533342b876e9dd87dbfeee0f9f510/unpacked/jax/output/SVG/jax.js#L413-L424
-        MathJax.OutputJax.SVG.resetGlyphs(true)
-        unRegister()
-        document.body.removeChild(element)
-        element = null
-        errors = null
+        let errors = []
+        let unRegister = registerHooks(errors)
+        let element = createMathElement(math, options.format)
+        return MathJax.Hub.Typeset(element, () => {
+          const jax = MathJax.Hub.getAllJax(element)[0]
+          const data = parseData(jax, errors, options)
+
+          // clears global glyphs cache
+          // https://github.com/mathjax/MathJax/blob/master/unpacked/jax/output/SVG/jax.js#L413-L424
+          MathJax.OutputJax.SVG.resetGlyphs(true)
+          MathJax.OutputJax.SVG.Remove(jax)
+          unRegister()
+          element.remove()
+          element = null
+          errors = null
+
+          resolve(data)
+        })
       },
     )
   })
 }
+
+// 触发一次渲染：
+// 因为 MathJax 存在一个 bug，如果有 `TeX Jax - parse error`，首次执行时触发 MessageHook 两次
+// 另一个解决方式是 `skipStartupTypeset` 设为 `false`，再页面上放置一个空公式
+renderMath('')
 </script>
 </body>
 </html>
