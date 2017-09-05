@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>puptex</title>
+</head>
+<body>
+<script type="text/x-mathjax-config">
+// http://docs.mathjax.org/en/latest/options/index.html
+MathJax.Hub.Config({
+  showMathMenu: false,
+  showMathMenuMSIE: false,
+  showProcessingMessages: false,
+  skipStartupTypeset: true,
+  jax: [
+    'input/TeX',
+    'input/MathML',
+    'input/AsciiMath',
+    // TODO: 控制不生成 math 元素
+    // 'output/NativeMML',
+    'output/SVG',
+  ],
+  TeX: {
+    noUndefined: {disabled: true},
+    noErrors: {disabled: true},
+  },
+  SVG: {
+    useGlobalCache: false,
+    EqnChunk: 1000000,
+    EqnDelay: 0,
+  },
+})
+
+window.onerror = console.warn
+
+// remove delays:
+// http://docs.mathjax.org/en/latest/api/hub.html#properties
+MathJax.Hub.processSectionDelay = 0
+MathJax.Hub.processUpdateTime = 10000000
+MathJax.Hub.processUpdateDelay = 0
+
+const globalConfig = {
+  ignoreUnknownCharError: true,
+}
+
+const registerHooks = (errors) => {
+  const events = [
+    'AsciiMath Jax - parse error',
+    'file load error',
+    'Math Processing Error',
+    'MathML Jax - parse error',
+    'MathML Jax - unknown node type',
+    'TeX Jax - parse error',
+  ]
+
+  if (!globalConfig.ignoreUnknownCharError) {
+    events.push('SVG Jax - unknown char')
+  }
+
+  const hooks = events.map(event => (
+    MathJax.Hub.Register.MessageHook(event, data => {
+      const [type, detail] = data
+      console.info(type, detail)
+      errors.push(`${type}: ${detail}`)
+    })
+  ))
+
+  return () => {
+    hooks.forEach(hook => {
+      MathJax.Hub.UnRegister.MessageHook(hook)
+    })
+  }
+}
+
+const getFrame = (jax) => (
+  document.querySelector(`#${jax.inputID}-Frame`)
+)
+
+const cleanupFrame = (jax) => {
+  const frame = getFrame(jax)
+  const parent = frame.parentElement
+  let elementToRemove = frame
+  if (parent.classList.contains('MathJax_SVG_Display')) {
+    elementToRemove = parent
+  }
+  if (elementToRemove.previousElementSibling) {
+    elementToRemove.previousElementSibling.remove()
+  }
+  elementToRemove.remove()
+}
+
+const parseDOMResults = (jax, options) => {
+  const frame = getFrame(jax)
+  const svg = frame.querySelector('svg')
+  // 使其能在浏览器直接打开，而不是被下载
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+  svg.removeAttribute('aria-hidden')
+  svg.style.fontSize = options.fontSize
+
+  const data = {
+    svg: svg.outerHTML,
+    width: svg.getAttribute('width'),
+    height: svg.getAttribute('height'),
+    style: svg.getAttribute('style'),
+  }
+
+  if (options.mml) {
+    const math = frame.querySelector('math')
+    data.mml = math ? math.outerHTML : undefined
+  }
+
+  return data
+}
+
+const parseData = (jax, errors, options) => {
+  const data = {}
+  if (errors && errors.length) {
+    data.errors = errors
+  }
+  return Object.assign(data, parseDOMResults(jax, options))
+}
+
+const runTypeset = (element, callback, errors, options) => {
+  return MathJax.Hub.Typeset(element, () => {
+    const jax = MathJax.Hub.getAllJax(element)[0]
+    const data = parseData(jax, errors, options)
+    cleanupFrame(jax)
+    callback(data)
+  })
+}
+
+window.config = (config = {}) => {
+  Object.assign(globalConfig, config)
+  if (globalConfig.mathJax) {
+    MathJax.Hub.Config(globalConfig.mathJax)
+  }
+}
+
+const scriptSubTypes = {
+  TeX: 'tex; mode=display',
+  'inline-TeX': 'tex',
+  AsciiMath: 'asciimath',
+  MathML: 'mml',
+}
+
+const formats = [
+  // 不需要 `display` 模式，由外部控制即可（如 CSS `display: block, margin: auto`），
+  // 图片内嵌时默认就是内联（不设置 'inline-TeX'）
+  'TeX',
+  'AsciiMath',
+  'MathML'
+]
+
+const defaultMathOptions = {
+  format: 'TeX',
+  mml: false,
+  svg: true,
+  fontSize: '15px',
+}
+
+window.renderMath = (math, options) => {
+  options = Object.assign({}, defaultMathOptions, options)
+  return new Promise((resolve) => {
+    let element
+    let errors = []
+    let unRegister
+    MathJax.Hub.Queue(
+      () => {
+        element = document.createElement('script')
+        const format = formats.find(f => f.toLowerCase() === options.format.toLowerCase()) || 'Tex'
+        element.type = 'math/' + scriptSubTypes[format]
+        element.textContent = math
+        document.body.appendChild(element)
+        unRegister = registerHooks(errors)
+        return runTypeset(element, resolve, errors, options)
+      },
+      () => {
+        // clears global glyphs cache
+        // https://github.com/mathjax/MathJax/blob/59c26d17b8c533342b876e9dd87dbfeee0f9f510/unpacked/jax/output/SVG/jax.js#L413-L424
+        MathJax.OutputJax.SVG.resetGlyphs(true)
+        unRegister()
+        document.body.removeChild(element)
+        element = null
+        errors = null
+      },
+    )
+  })
+}
+</script>
+</body>
+</html>

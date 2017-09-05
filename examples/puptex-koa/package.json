@@ -1,0 +1,19 @@
+{
+  "name": "puptex-koa",
+  "version": "0.0.1",
+  "private": true,
+  "main": "createApp.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "koa": "^2.3.0",
+    "koa-compress": "^2.0.0",
+    "lodash": "^4.17.4"
+  },
+  "devDependencies": {
+    "jest": "^21.0.1",
+    "supertest": "^3.0.0"
+  }
+}
