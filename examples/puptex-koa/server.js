@@ -1,6 +1,4 @@
-const createApp = require('./createApp')
-
-exports.createApp = createApp
+const createApp = require('./src/createApp')
 
 const runServer = async () => {
   const port = process.env.PORT || 11010
@@ -10,6 +8,4 @@ const runServer = async () => {
   })
 }
 
-if (process.argv.includes('--run')) {
-  runServer()
-}
+runServer()

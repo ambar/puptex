@@ -11,7 +11,7 @@ Using [Puppeteer](https://github.com/GoogleChrome/puppeteer)(Headless Chrome) to
 **Node**
 
 ```js
-import puptex from 'puptex'
+const puptex = require('puptex')
 
 ;(async () => {
   puptex.config({
@@ -27,16 +27,7 @@ import puptex from 'puptex'
 
 **Koa**
 
-```js
-import {createApp} from 'puptex/server'
-
-;(async () => {
-  const app = await createApp({middleware, onError})
-  app.listen(11010)
-
-  // serving http://localhost:11010/?q=E=mc^2
-})()
-```
+[examples/puptex-koa](./examples/puptex-koa)
 
 ## API
 

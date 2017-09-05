@@ -1,7 +1,7 @@
 const Koa = require('koa')
 const compress = require('koa-compress')
 const {mapValues, pickBy} = require('lodash')
-const puptex = require('./puptex')
+const puptex = require('../../..')
 
 // {bool: 'false', number: '1'} => {bool: false, number: 1}
 const parseQuery = (query) => (
