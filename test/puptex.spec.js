@@ -3,6 +3,7 @@ const puptex = require('../src/puptex')
 describe('puptex', () => {
   beforeAll(async () => {
     puptex.config({
+      concurrency: 1,
       mathJax: {
         TeX: {
           Macros: {

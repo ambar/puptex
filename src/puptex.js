@@ -2,68 +2,71 @@ const puppeteer = require('puppeteer')
 
 const pageUrl = `file://${__dirname}/puptex.html`
 const mathJaxUrl = `file://${require.resolve('mathjax')}?config=TeX-MML-AM_SVG`
+const times = (count, fn) => [...Array(count).keys()].map(fn)
 
-const globalConfig = {
+const defaults = {
   // max Puppeteer page count
   concurrency: 4,
   // MathJax.Hub.Config
   mathJax: {},
 }
 
-const times = (count, fn) => [...Array(count).keys()].map(fn)
-
-let browser = null
-const launch = async () => {
-  if (browser) {
-    return
-  }
-  browser = await puppeteer.launch({
-    // Running as root without --no-sandbox is not supported.
-    // https://peter.sh/experiments/chromium-command-line-switches/#no-sandbox
-    args: ['--no-sandbox'],
-  })
-  // prepare pages
-  await Promise.all(times(globalConfig.concurrency, () => getPage()))
-}
-
-const close = () => {
-  if (browser) {
-    browser.close()
-    pages.length = 0
-  }
-}
-
-const config = (config) => {
-  Object.assign(globalConfig, config)
-}
-
-const pages = []
-let current = -1
-const getPage = async () => {
-  current = (current + 1) % globalConfig.concurrency
-
-  if (pages[current]) {
-    return pages[current]
+class PupTex {
+  constructor(config) {
+    this.config_ = Object.assign({}, defaults, config)
+    this.browser_ = null
+    this.pages_ = []
+    this.current_ = -1
   }
 
-  const page = await browser.newPage()
-  page.on('console', console.info)
-  await page.goto(pageUrl)
-  await page.addScriptTag(mathJaxUrl)
-  await page.evaluate((config) => window.config(config), globalConfig)
-  pages.push(page)
-  return page
+  config(config) {
+    Object.assign(this.config_, config)
+  }
+
+  async launch() {
+    if (this.browser_) {
+      return
+    }
+
+    this.browser_ = await puppeteer.launch({
+      // Running as root without --no-sandbox is not supported.
+      // https://peter.sh/experiments/chromium-command-line-switches/#no-sandbox
+      args: ['--no-sandbox'],
+    })
+
+    // prepare pages
+    await Promise.all(times(this.config_.concurrency, () => this.getPage_()))
+  }
+
+  close() {
+    if (this.browser_) {
+      this.browser_.close()
+      this.pages_.length = 0
+    }
+  }
+
+  async getPage_() {
+    this.current_ = (this.current_ + 1) % this.config_.concurrency
+
+    if (this.pages_[this.current_]) {
+      return this.pages_[this.current_]
+    }
+
+    const page = await this.browser_.newPage()
+    page.on('console', console.info)
+    await page.goto(pageUrl)
+    await page.addScriptTag(mathJaxUrl)
+    await page.evaluate((config) => window.config(config), this.config_)
+    this.pages_.push(page)
+    return page
+  }
+
+  async renderMath(math = '', options = {}) {
+    const page = await this.getPage_()
+    const data = await page.evaluate((...args) => window.renderMath(...args), math, options)
+    return data
+  }
 }
 
-const renderMath = async (math = '', options = {}) => {
-  const page = await getPage()
-  const data = await page.evaluate((...args) => window.renderMath(...args), math, options)
-  return data
-}
-
-module.exports = {
-  config,
-  launch,
-  renderMath,
-  close,
-}
+module.exports = new PupTex
+module.exports.PupTex = PupTex
