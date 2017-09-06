@@ -17,7 +17,11 @@ const launch = async () => {
   if (browser) {
     return
   }
-  browser = await puppeteer.launch()
+  browser = await puppeteer.launch({
+    // Running as root without --no-sandbox is not supported.
+    // https://peter.sh/experiments/chromium-command-line-switches/#no-sandbox
+    args: ['--no-sandbox'],
+  })
   // prepare pages
   await Promise.all(times(globalConfig.concurrency, () => getPage()))
 }
