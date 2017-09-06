@@ -1,7 +1,7 @@
 const Koa = require('koa')
 const compress = require('koa-compress')
 const {mapValues, pickBy} = require('lodash')
-const puptex = require('../../..')
+const {PupTex} = require('../../..')
 
 // {bool: 'false', number: '1'} => {bool: false, number: 1}
 const parseQuery = (query) => (
@@ -17,7 +17,7 @@ const parseQuery = (query) => (
   })
 )
 
-const render = ({svgPath, jsonPath, onError}) => async (ctx, next) => {
+const render = (puptex, {svgPath, jsonPath, onError}) => async (ctx, next) => {
   await next()
 
   if ([svgPath, jsonPath].includes(ctx.path)) {
@@ -48,6 +48,7 @@ const defaults = {
 }
 
 const createApp = async (options) => {
+  const puptex = new PupTex()
   await puptex.launch()
   // ctrl + c
   process.on('SIGINT', () => {
@@ -62,7 +63,7 @@ const createApp = async (options) => {
   if (options.middleware) {
     app.use(options.middleware)
   }
-  app.use(render(options))
+  app.use(render(puptex, options))
 
   const listen = app.listen.bind(app)
   app.listen = (...args) => {
