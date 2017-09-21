@@ -1,5 +1,7 @@
 # PupTex
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/ambar/puptex.svg)](https://greenkeeper.io/)
+
 [![build status](https://img.shields.io/travis/ambar/puptex/master.svg?style=flat-square)](https://travis-ci.org/ambar/puptex)
 [![npm version](https://img.shields.io/npm/v/puptex.svg?style=flat-square)](https://www.npmjs.com/package/puptex)
 
