@@ -58,8 +58,8 @@ describe('puptex', () => {
     expect(data).toMatchSnapshot()
   })
 
-  it('renders MathML', async () => {
-    const data = await puptex.renderMath('x', {mml: true})
-    expect(data).toMatchSnapshot()
-  })
+  // it('renders MathML', async () => {
+  //   const data = await puptex.renderMath('x', {mml: true})
+  //   expect(data).toMatchSnapshot()
+  // })
 })

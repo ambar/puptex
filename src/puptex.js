@@ -1,15 +1,38 @@
+const path = require('path')
 const puppeteer = require('puppeteer')
 
 const pageUrl = `file://${__dirname}/puptex.html`
-const mathJaxUrl = `file://${require.resolve('mathjax')}?config=TeX-MML-AM_SVG`
+const mathJaxUrl = require.resolve('mathjax/es5/tex-svg-full')
+const root = path.dirname(mathJaxUrl);
 const times = (count, fn) => [...Array(count).keys()].map(fn)
 
 const defaults = {
   // max Puppeteer page count
   concurrency: 4,
-  // MathJax.Hub.Config
-  mathJax: {},
 }
+
+const mathDefaults = {
+  fontSize: '15px',
+}
+
+const config = 'MathJax = ' + JSON.stringify({
+  tex: {
+    packages: [ 'base', 'ams', 'newcommand', 'autoload', 'require' ]
+  },
+  svg: {
+    mtextFont: 'Times',
+    merrorFont: 'Times',
+    fontCache: 'none'
+  },
+  loader: {
+    paths: {
+      mathjax: `file://${root}`
+    }
+  },
+  startup: {
+    typeset: false
+  }
+});
 
 class PupTex {
   constructor(config) {
@@ -55,16 +78,29 @@ class PupTex {
     const page = await this.browser_.newPage()
     page.on('console', console.info)
     await page.goto(pageUrl)
-    await page.addScriptTag(mathJaxUrl)
-    await page.evaluate((config) => window.config(config), this.config_)
+    await page.addScriptTag({content: config});
+    await page.addScriptTag({url: mathJaxUrl})
     this.pages_.push(page)
     return page
   }
 
   async renderMath(math = '', options = {}) {
     const page = await this.getPage_()
-    const data = await page.evaluate((...args) => window.renderMath(...args), math, options)
-    return data
+    // return await page.evaluate((...args) => window.renderMath(...args), math, options)
+    // https://github.com/mathjax/MathJax-demos-node/blob/master/puppeteer/tex2svg
+    return page.evaluate(async (math, options) => {
+      await MathJax.startup.promise
+      const html = await MathJax.tex2svgPromise(math)
+      const svg = html.firstChild
+      svg.style.fontSize = options.fontSize
+      const data = {
+        svg: svg.outerHTML,
+        width: svg.getAttribute('width'),
+        height: svg.getAttribute('height'),
+        style: svg.getAttribute('style'),
+      }
+      return data
+    }, math, {...mathDefaults, ...options})
   }
 }
 
