@@ -55,7 +55,7 @@ class PupTex {
     const page = await this.browser_.newPage()
     page.on('console', console.info)
     await page.goto(pageUrl)
-    await page.addScriptTag(mathJaxUrl)
+    await page.addScriptTag({url: mathJaxUrl})
     await page.evaluate((config) => window.config(config), this.config_)
     this.pages_.push(page)
     return page
