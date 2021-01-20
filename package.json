@@ -5,12 +5,11 @@
   "main": "index.js",
   "license": "MIT",
   "engines": {
-    "node": ">=6.4.0"
+    "node": ">=10"
   },
   "scripts": {
-    "build:node6": "BABEL_ENV=node6 babel src --out-dir node6 && cp ./src/puptex.html ./node6",
     "bench": "node ./scripts/bench > doc/bench.txt",
-    "prepublish": "npm test && npm run build:node6",
+    "prepublish": "npm test",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test": "jest"
@@ -42,8 +41,6 @@
     ]
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-preset-env": "^1.6.0",
     "jest": "^20.0.4",
     "mathjax-node": "^1.2.0"
   },
