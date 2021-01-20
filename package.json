@@ -46,6 +46,6 @@
   },
   "dependencies": {
     "mathjax": "^3.1.2",
-    "puppeteer": "^5.5.0"
+    "puppeteer": "0.10.1"
   }
 }
