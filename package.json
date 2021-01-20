@@ -1,6 +1,6 @@
 {
   "name": "puptex",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Using Puppeteer to render math.",
   "main": "index.js",
   "license": "MIT",
