@@ -10,7 +10,7 @@
   "dependencies": {
     "koa": "^2.13.1",
     "koa-compress": "^5.0.1",
-    "lodash": "^4.17.20"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "supertest": "^6.1.1"
